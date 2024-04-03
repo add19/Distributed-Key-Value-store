@@ -15,8 +15,13 @@ public class KeyValueServer {
     ICoordinator coordinator;
     try {
       coordinator = new Coordinator();
+      ICoordinator stub = (ICoordinator) UnicastRemoteObject.exportObject(coordinator, 8080);
+      Registry registry = LocateRegistry.createRegistry(8080); // hard coded for now
+
+      registry.rebind("kvstore", stub);
+      System.out.println("Coordinator at port " + 8080 + "  ready..");
     } catch (RemoteException e) {
-      System.out.println("Could not start the coordinator...");
+      System.out.println(e.getMessage());
       return;
     }
 
