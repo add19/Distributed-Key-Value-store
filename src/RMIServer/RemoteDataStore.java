@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class RemoteDataStore implements IRemoteDataStore {
   private final ConcurrentMap<String, String> kvStore;
-  protected RemoteDataStore() throws RemoteException {
+  public RemoteDataStore() throws RemoteException {
     super();
     kvStore = new ConcurrentHashMap<>();
   }
