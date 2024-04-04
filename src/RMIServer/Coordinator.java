@@ -25,13 +25,14 @@ public class Coordinator extends RemoteDataStore implements ICoordinator {
   @Override
   public void updateWithClientRequest(String operation, String key, String value)
     throws RemoteException {
-    this.canCommit(operation, key, value);
+    Transaction transaction = new Transaction(operation, key, value);
+    this.canCommit(transaction);
   }
 
   @Override
-  public boolean canCommit(String operation, String key, String value) throws RemoteException {
+  public boolean canCommit(Transaction transaction) throws RemoteException {
     for(IRemoteDataStore ds:participants) {
-      if(!ds.canCommit(operation, key, value)) {
+      if(!ds.canCommit(transaction)) {
         this.doAbort();
         return false;
       }
@@ -43,8 +44,6 @@ public class Coordinator extends RemoteDataStore implements ICoordinator {
   @Override
   public void doCommit() throws RemoteException {
     for(IRemoteDataStore ds:participants) {
-//       ds.commit();
-      System.out.println("Committing transaction");
       ds.doCommit();
     }
   }
@@ -52,7 +51,6 @@ public class Coordinator extends RemoteDataStore implements ICoordinator {
   @Override
   public void doAbort() throws RemoteException {
     for(IRemoteDataStore ds:participants) {
-      // ds.abort
       ds.doAbort();
     }
   }

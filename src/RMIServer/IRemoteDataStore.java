@@ -21,7 +21,7 @@ public interface IRemoteDataStore extends Remote {
    */
   String get(String key) throws RemoteException;
 
-  boolean canCommit(String operation, String key, String value) throws RemoteException;
+  boolean canCommit(Transaction transaction) throws RemoteException;
 
   void doCommit() throws RemoteException;
 
