@@ -4,35 +4,45 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Arrays;
 
 public class KeyValueServer {
 
   public static void main(String[] args) {
-    if (args.length != 5) {
-      System.out.println("Correct Usage: java RMIServer.KeyValueServer [port1] [port2] [port3] [port4] [port5]");
+    if (args.length != 6) {
+      System.out.println("Correct Usage: java RMIServer.KeyValueServer [registry port] [port1] [port2] [port3] [port4] [port5]");
       System.exit(1);
     }
+    int portNum = Integer.parseInt(args[0]);
+    Registry registry = null;
+
+    try {
+      registry = LocateRegistry.createRegistry(portNum);
+    } catch (RemoteException e) {
+      System.out.println("Couldn't create registry...");
+      return;
+    }
+
     ICoordinator coordinator;
     try {
       coordinator = new Coordinator();
       ICoordinator stub = (ICoordinator) UnicastRemoteObject.exportObject(coordinator, 8080);
-      Registry registry = LocateRegistry.createRegistry(8080); // hard coded for now
 
-      registry.rebind("kvstore", stub);
+      registry.rebind("coordinator", stub);
       System.out.println("Coordinator at port " + 8080 + "  ready..");
     } catch (RemoteException e) {
       System.out.println(e.getMessage());
       return;
     }
 
-    for(int i=0; i<5; i++) {
+
+    for(int i=1; i<6; i++) {
       try {
-        int portNum = Integer.parseInt(args[i]);
+        portNum = Integer.parseInt(args[i]);
         RemoteDataStore server = new RemoteDataStore();
         IRemoteDataStore stub = (IRemoteDataStore) UnicastRemoteObject.exportObject(server, 0);
-        Registry registry = LocateRegistry.createRegistry(portNum);
 
-        registry.rebind("kvstore", stub);
+        registry.rebind("kvstore" + i, stub);
         coordinator.updateParticipantInfo(server, portNum);
         System.out.println("Server at port " + portNum + "  ready..");
       } catch (RemoteException e) {
@@ -56,6 +66,12 @@ public class KeyValueServer {
        * 5. Temporary storage of the participant store
        * 6. Writing out contents of this store into the key value store upon commit message reception/clearing out in case of abort.
        */
+      //trying to print
+      try {
+        Arrays.asList(registry.list()).forEach(System.out::println);
+      } catch (RemoteException e) {
+        System.out.println("Failed to list objects in the registry.");
+      }
 
   }
 }

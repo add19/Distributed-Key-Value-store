@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Coordinator extends RemoteDataStore implements ICoordinator {
-  private List<IRemoteDataStore> participants;
+  private final List<IRemoteDataStore> participants;
   int[] ports;
 
   public Coordinator() throws RemoteException {
@@ -15,29 +15,45 @@ public class Coordinator extends RemoteDataStore implements ICoordinator {
   }
 
   @Override
-  public void updateParticipantInfo(IRemoteDataStore dataStore, int portNum) {
+  public void updateParticipantInfo(IRemoteDataStore dataStore, int portNum)
+    throws RemoteException {
     participants.add(dataStore);
+    dataStore.updateCoordinator(this);
     ports[participants.size() - 1] = portNum;
   }
 
   @Override
-  public void canCommit() {
+  public void updateWithClientRequest(String operation, String key, String value)
+    throws RemoteException {
+    this.canCommit(operation, key, value);
+  }
+
+  @Override
+  public boolean canCommit(String operation, String key, String value) throws RemoteException {
     for(IRemoteDataStore ds:participants) {
-      // ds.canCommit
+      if(!ds.canCommit(operation, key, value)) {
+        this.doAbort();
+        return false;
+      }
+    }
+    this.doCommit();
+    return true;
+  }
+
+  @Override
+  public void doCommit() throws RemoteException {
+    for(IRemoteDataStore ds:participants) {
+//       ds.commit();
+      System.out.println("Committing transaction");
+      ds.doCommit();
     }
   }
 
   @Override
-  public void doCommit() {
-    for(IRemoteDataStore ds:participants) {
-      // ds.commit
-    }
-  }
-
-  @Override
-  public void doAbort() {
+  public void doAbort() throws RemoteException {
     for(IRemoteDataStore ds:participants) {
       // ds.abort
+      ds.doAbort();
     }
   }
 }

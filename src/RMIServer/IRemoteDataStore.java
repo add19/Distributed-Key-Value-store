@@ -4,6 +4,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface IRemoteDataStore extends Remote {
+  void updateCoordinator(ICoordinator coordinator) throws RemoteException;
   /**
    * Inserts a given key and assigns it a given value in the data store.
    *
@@ -19,6 +20,12 @@ public interface IRemoteDataStore extends Remote {
    * @return A message containing the corresponding value stored against the key in the data store.
    */
   String get(String key) throws RemoteException;
+
+  boolean canCommit(String operation, String key, String value) throws RemoteException;
+
+  void doCommit() throws RemoteException;
+
+  void doAbort() throws RemoteException;
 
   /**
    * Deletes the given key and its corresponding value from the data store.

@@ -10,6 +10,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Random;
 
 public class ClientWorker extends AbstractClient {
 
@@ -62,11 +63,13 @@ public class ClientWorker extends AbstractClient {
   @Override
   public void startClient(String serverIp, int portNum) {
     IRemoteDataStore remoteObj = null;
+    Random random = new Random();
+    int randomNumber = random.nextInt(5) + 1;
 
     try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
-      Registry registry = LocateRegistry.getRegistry("localhost", portNum);
-      remoteObj = (IRemoteDataStore) registry.lookup("kvstore");
-
+      Registry registry = LocateRegistry.getRegistry("localhost", portNum); //TODO: change this...
+      remoteObj = (IRemoteDataStore) registry.lookup("kvstore" + randomNumber);
+      System.out.println("Connecting with server - " + "kvstore" + randomNumber);
 
       System.out.println("Do you want to automatically pre-populate data to the key value store? (y/n)");
       while(true) {
