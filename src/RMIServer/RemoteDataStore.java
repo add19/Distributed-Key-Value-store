@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * The remote data store class.
+ */
 public class RemoteDataStore implements IRemoteDataStore {
   private final ConcurrentMap<String, String> kvStore;
   private final List<Transaction> transactions;
@@ -23,9 +26,11 @@ public class RemoteDataStore implements IRemoteDataStore {
   }
 
   ICoordinator coordinator;
+  String name;
 
   @Override
-  public void updateCoordinator(ICoordinator coordinator) {
+  public void updateInstancesWith2PCInfo(ICoordinator coordinator, String serverName) {
+    this.name = serverName;
     this.coordinator = coordinator;
   }
 
@@ -35,7 +40,7 @@ public class RemoteDataStore implements IRemoteDataStore {
   }
 
   @Override
-  public String get(String key) throws RemoteException {
+  public synchronized String get(String key) throws RemoteException {
     System.out.println("[" + getTimestamp() + "] => Received GET for key - " + key);
     if(!kvStore.containsKey(key)) {
       return "Key " + key + " doesn't exist in the store";
@@ -44,21 +49,24 @@ public class RemoteDataStore implements IRemoteDataStore {
   }
 
   @Override
-  public boolean canCommit(Transaction transaction) throws RemoteException {
-    //preparing transaction..
+  public synchronized Vote canCommit(Transaction transaction) throws RemoteException {
+    if(transaction.operation.equals("DELETE") && !kvStore.containsKey(transaction.operands[0])) {
+      return Vote.NO;
+    }
+    //preparing transaction
     transactions.add(transaction);
-    return true;
+    return Vote.YES;
   }
 
   @Override
-  public void doCommit() throws RemoteException {
+  public synchronized void doCommit() throws RemoteException {
     for(Transaction transaction:transactions) {
-      System.out.println("Committing " + transaction);
+      System.out.println("[" + this.name + "] Committing " + transaction);
       if(transaction.operation.equals("PUT")) {
-        System.out.println("[" + getTimestamp() + "] => Received PUT for key - " + transaction.operands[0] + " value - " + transaction.operands[1]);
+        System.out.println("[" + getTimestamp() + "] => " + this.name + " Received PUT for key - " + transaction.operands[0] + " value - " + transaction.operands[1]);
         kvStore.put(transaction.operands[0], transaction.operands[1]);
       } else {
-        System.out.println("[" + getTimestamp() + "] => Received DELETE for key - " + transaction.operands[0]);
+        System.out.println("[" + getTimestamp() + "] => " + this.name + " Received DELETE for key - " + transaction.operands[0]);
         kvStore.remove(transaction.operands[0]);
       }
     }
@@ -66,13 +74,12 @@ public class RemoteDataStore implements IRemoteDataStore {
   }
 
   @Override
-  public void doAbort() throws RemoteException {
+  public synchronized void doAbort() throws RemoteException {
     transactions.clear();
   }
 
   @Override
-  public synchronized String delete(String key) throws RemoteException {
+  public synchronized void delete(String key) throws RemoteException {
     coordinator.updateWithClientRequest("DELETE", key, null);
-    return "Key " + key + " deleted";
   }
 }

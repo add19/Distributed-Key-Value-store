@@ -4,52 +4,62 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents the coordinator in the cluster. It acts like a server so extends the RemoteDataStore
+ * class and implements additional functionality for acting as a coordinator.
+ */
 public class Coordinator extends RemoteDataStore implements ICoordinator {
+  // list of the participants.
   private final List<IRemoteDataStore> participants;
-  int[] ports;
 
   public Coordinator() throws RemoteException {
     super();
     this.participants = new ArrayList<>();
-    ports = new int[5];
   }
 
   @Override
-  public void updateParticipantInfo(IRemoteDataStore dataStore, int portNum)
+  public synchronized void updateParticipantInfo(IRemoteDataStore dataStore, String serverName)
     throws RemoteException {
     participants.add(dataStore);
-    dataStore.updateCoordinator(this);
-    ports[participants.size() - 1] = portNum;
+    dataStore.updateInstancesWith2PCInfo(this, serverName);
   }
 
   @Override
-  public void updateWithClientRequest(String operation, String key, String value)
+  public synchronized void updateWithClientRequest(String operation, String key, String value)
     throws RemoteException {
     Transaction transaction = new Transaction(operation, key, value);
     this.canCommit(transaction);
   }
 
   @Override
-  public boolean canCommit(Transaction transaction) throws RemoteException {
+  public synchronized Vote canCommit(Transaction transaction) throws RemoteException {
     for(IRemoteDataStore ds:participants) {
-      if(!ds.canCommit(transaction)) {
+      try{
+        Thread.sleep(10);
+        if(ds.canCommit(transaction) == Vote.NO) {
+          this.doAbort();
+          System.out.println("[COORDINATOR]: Received NO from one of the participants, aborting transaction " + transaction);
+          return Vote.NO;
+        }
+      } catch(InterruptedException ex) {
         this.doAbort();
-        return false;
+        System.out.println("Server timed out for transaction - " + transaction);
+        return Vote.NO;
       }
     }
     this.doCommit();
-    return true;
+    return Vote.YES;
   }
 
   @Override
-  public void doCommit() throws RemoteException {
+  public synchronized void doCommit() throws RemoteException {
     for(IRemoteDataStore ds:participants) {
       ds.doCommit();
     }
   }
 
   @Override
-  public void doAbort() throws RemoteException {
+  public synchronized void doAbort() throws RemoteException {
     for(IRemoteDataStore ds:participants) {
       ds.doAbort();
     }

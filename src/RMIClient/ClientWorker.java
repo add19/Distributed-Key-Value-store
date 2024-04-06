@@ -10,7 +10,8 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.Random;
+import java.util.Arrays;
+import java.util.Scanner;
 
 public class ClientWorker extends AbstractClient {
 
@@ -41,8 +42,7 @@ public class ClientWorker extends AbstractClient {
     System.out.println("[ " + getTimestamp() + " ]" + " => Deleting first 5 keys");
     for(int i=0; i<5; i++) {
       String key = "KEY::" + i;
-      String value = remoteObj.delete(key);
-      System.out.println("Deleted Key: " + key);
+      remoteObj.delete(key);
     }
 
     System.out.println("[ " + getTimestamp() + " ]" + " => Fetching first 5 keys");
@@ -63,13 +63,30 @@ public class ClientWorker extends AbstractClient {
   @Override
   public void startClient(String serverIp, int portNum) {
     IRemoteDataStore remoteObj = null;
-    Random random = new Random();
-    int randomNumber = random.nextInt(5) + 1;
 
     try (BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
-      Registry registry = LocateRegistry.getRegistry("localhost", portNum); //TODO: change this...
-      remoteObj = (IRemoteDataStore) registry.lookup("kvstore" + randomNumber);
-      System.out.println("Connecting with server - " + "kvstore" + randomNumber);
+      Registry registry = LocateRegistry.getRegistry("localhost", portNum);
+      System.out.println("Servers in the cluster are");
+
+      try {
+        Arrays.asList(registry.list()).forEach(System.out::println);
+      } catch (RemoteException e) {
+        System.out.println("Failed to list objects in the registry.");
+        return;
+      }
+      Scanner sc = new Scanner(System.in);
+      String name = "";
+      while(true) {
+        System.out.println("Please choose a server to connect");
+        name = sc.next();
+        if(!Arrays.asList(registry.list()).contains(name)) {
+          System.out.println("Please enter a valid name");
+        } else {
+          break;
+        }
+      }
+      remoteObj = (IRemoteDataStore) registry.lookup(name);
+      System.out.println("Connecting with server - " +  name);
 
       System.out.println("Do you want to automatically pre-populate data to the key value store? (y/n)");
       while(true) {
@@ -102,7 +119,8 @@ public class ClientWorker extends AbstractClient {
             break;
           case "3":
             key = getKey(userInput);
-            System.out.println("[ " + getTimestamp() + " ] => " + remoteObj.delete(key));
+            remoteObj.delete(key);
+            System.out.println("[ " + getTimestamp() + " ] => " + key + " not present in hash map now");
             break;
           default:
             System.out.println("Invalid choice. Please enter 1, 2, 3");

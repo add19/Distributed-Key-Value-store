@@ -3,8 +3,10 @@ package RMIServer;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
-public interface IRemoteDataStore extends Remote {
-  void updateCoordinator(ICoordinator coordinator) throws RemoteException;
+/**
+ * Represents the remote data store type instances and the possible operations on them.
+ */
+public interface IRemoteDataStore extends Remote, ITwoPhaseCommit {
   /**
    * Inserts a given key and assigns it a given value in the data store.
    *
@@ -21,17 +23,11 @@ public interface IRemoteDataStore extends Remote {
    */
   String get(String key) throws RemoteException;
 
-  boolean canCommit(Transaction transaction) throws RemoteException;
-
-  void doCommit() throws RemoteException;
-
-  void doAbort() throws RemoteException;
-
   /**
    * Deletes the given key and its corresponding value from the data store.
    *
    * @param key the key to be deleted.
    * @return A message indicating whether the operation is successful or not.
    */
-  String delete(String key) throws RemoteException;
+  void delete(String key) throws RemoteException;
 }
