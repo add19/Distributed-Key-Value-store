@@ -86,3 +86,28 @@ consistency of the data.
 
 # Output and Screenshots
 
+## Client
+Starting the cluster
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p3/Screenshot 2024-04-06 at 6.12.31 PM.png)
+
+Connecting to a server in the cluster
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p3/Screenshot 2024-04-06 at 6.13.31 PM.png)
+
+
+Connecting with another server through a different instance of a client and writing something into the store
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p3/Screenshot 2024-04-06 at 6.16.47 PM.png)
+
+Checking if the populated key is present across different servers
+
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p3/Screenshot 2024-04-06 at 6.16.53 PM.png)
+
+Deleting the key on another client
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p3/Screenshot 2024-04-06 at 6.17.37 PM.png)
+
+
+Checking if deletion is reflected or not
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p3/Screenshot 2024-04-06 at 6.17.52 PM.png)
+
+
+Server logs
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p3/Screenshot 2024-04-06 at 6.21.29 PM.png)
