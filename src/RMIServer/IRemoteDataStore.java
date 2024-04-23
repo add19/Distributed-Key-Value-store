@@ -16,7 +16,7 @@ public interface IRemoteDataStore extends Remote, IProposer, ILearner, IAcceptor
    * @param key The key to be stored.
    * @param value The associated value to be stored.
    */
-  void put(String key, String value) throws RemoteException;
+  boolean put(String key, String value) throws RemoteException;
 
   /**
    * Gets the value for a given key from the data store.
@@ -31,7 +31,7 @@ public interface IRemoteDataStore extends Remote, IProposer, ILearner, IAcceptor
    *
    * @param key the key to be deleted.
    */
-  void delete(String key) throws RemoteException;
+  boolean delete(String key) throws RemoteException;
 
   void updateInstancesWithName(String name) throws  RemoteException;
 

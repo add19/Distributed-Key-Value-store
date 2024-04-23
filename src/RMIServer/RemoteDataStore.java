@@ -13,21 +13,20 @@ public class RemoteDataStore extends PaxosNode implements IRemoteDataStore {
   public RemoteDataStore() throws RemoteException {
     super();
   }
-  String name;
   private String getTimestamp() {
     return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
   }
 
   public void updateInstancesWithName(String serverName) {
-    this.name = serverName;
+    name = serverName;
   }
 
   @Override
-  public synchronized void put(String key, String value) throws RemoteException {
+  public synchronized boolean put(String key, String value) throws RemoteException {
     // propose a value to all the acceptors which is a LogEntry
     LogEntry entry = new LogEntry("PUT", key, value);
     System.out.println("Received request " + entry);
-    super.checkConsensus(entry);
+    return super.checkConsensus(entry);
   }
 
   @Override
@@ -40,9 +39,9 @@ public class RemoteDataStore extends PaxosNode implements IRemoteDataStore {
   }
 
   @Override
-  public synchronized void delete(String key) throws RemoteException {
+  public synchronized boolean delete(String key) throws RemoteException {
     LogEntry entry = new LogEntry("DELETE", key, null);
-    super.checkConsensus(entry);
+    return super.checkConsensus(entry);
   }
 
   @Override

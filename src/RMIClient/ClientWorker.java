@@ -109,8 +109,12 @@ public class ClientWorker extends AbstractClient {
           case "1":
             String key = getKey(userInput);
             String value = getValue(userInput);
-            remoteObj.put(key, value);
-            System.out.println("[ " + getTimestamp() + " ]" + " => Key " + key + " stored with value " + value);
+            if(remoteObj.put(key, value)) {
+              System.out.println("[ " + getTimestamp() + " ]" + " => Key " + key + " stored with value " + value);
+            } else {
+              System.out.println("Failed to write to key value store");
+            }
+
             break;
           case "2":
             key = getKey(userInput);
@@ -119,8 +123,12 @@ public class ClientWorker extends AbstractClient {
             break;
           case "3":
             key = getKey(userInput);
-            remoteObj.delete(key);
-            System.out.println("[ " + getTimestamp() + " ] => " + key + " not present in hash map now");
+
+            if(remoteObj.delete(key)) {
+              System.out.println("[ " + getTimestamp() + " ]" + " => Key " + key + " not present in the store");
+            } else {
+              System.out.println("Failed to delete from key value store");
+            }
             break;
           default:
             System.out.println("Invalid choice. Please enter 1, 2, 3");
