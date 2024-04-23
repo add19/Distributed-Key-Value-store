@@ -31,8 +31,12 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
     // if majority, then sendAccept
     if(this.countPromises + 1 >= (acceptors.size()) / 2) {
        this.sendAcceptRequest(new PaxosMessage(MessageType.ACCEPT, message.getProposalId(), entry));
+       //TODO: Handling lost updates.
        if(this.countAccepts + 1 >= (acceptors.size()) / 2) {
          this.updateLearner(message); // calling commit.
+         for(IRemoteDataStore ds:acceptors) {
+           ds.updateLearner(message);
+         }
        } else {
          System.out.println("Couldn't accept message " + entry);
          System.out.println(this.countAccepts);
