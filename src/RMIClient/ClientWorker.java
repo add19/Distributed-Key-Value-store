@@ -127,7 +127,7 @@ public class ClientWorker extends AbstractClient {
         }
       }
     } catch (RemoteException e) {
-      System.out.println("Server seems to be offline...");
+      System.out.println("Server seems to be offline..." + e);
     } catch (MalformedURLException e) {
       System.out.println("Invalid URL..." + e.getMessage());
     } catch (NotBoundException e) {

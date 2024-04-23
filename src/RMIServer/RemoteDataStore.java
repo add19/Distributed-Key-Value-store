@@ -1,42 +1,33 @@
 package RMIServer;
 
+import RMIServer.Messages.LogEntry;
+import RMIServer.Participants.PaxosNode;
 import java.rmi.RemoteException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * The remote data store class.
  */
-public class RemoteDataStore implements IRemoteDataStore {
-  private final ConcurrentMap<String, String> kvStore;
-  private final List<Transaction> transactions;
-
+public class RemoteDataStore extends PaxosNode implements IRemoteDataStore {
   public RemoteDataStore() throws RemoteException {
     super();
-    kvStore = new ConcurrentHashMap<>();
-    transactions = new ArrayList<>();
   }
-
+  String name;
   private String getTimestamp() {
     return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
   }
 
-  ICoordinator coordinator;
-  String name;
-
-  @Override
-  public void updateInstancesWith2PCInfo(ICoordinator coordinator, String serverName) {
+  public void updateInstancesWithName(String serverName) {
     this.name = serverName;
-    this.coordinator = coordinator;
   }
 
   @Override
   public synchronized void put(String key, String value) throws RemoteException {
-    coordinator.updateWithClientRequest("PUT", key, value);
+    // propose a value to all the acceptors which is a LogEntry
+    LogEntry entry = new LogEntry("PUT", key, value);
+    System.out.println("Received request " + entry);
+    super.checkConsensus(entry);
   }
 
   @Override
@@ -49,37 +40,13 @@ public class RemoteDataStore implements IRemoteDataStore {
   }
 
   @Override
-  public synchronized Vote canCommit(Transaction transaction) throws RemoteException {
-    if(transaction.operation.equals("DELETE") && !kvStore.containsKey(transaction.operands[0])) {
-      return Vote.NO;
-    }
-    //preparing transaction
-    transactions.add(transaction);
-    return Vote.YES;
-  }
-
-  @Override
-  public synchronized void doCommit() throws RemoteException {
-    for(Transaction transaction:transactions) {
-      System.out.println("[" + this.name + "] Committing " + transaction);
-      if(transaction.operation.equals("PUT")) {
-        System.out.println("[" + getTimestamp() + "] => " + this.name + " Received PUT for key - " + transaction.operands[0] + " value - " + transaction.operands[1]);
-        kvStore.put(transaction.operands[0], transaction.operands[1]);
-      } else {
-        System.out.println("[" + getTimestamp() + "] => " + this.name + " Received DELETE for key - " + transaction.operands[0]);
-        kvStore.remove(transaction.operands[0]);
-      }
-    }
-    transactions.clear();
-  }
-
-  @Override
-  public synchronized void doAbort() throws RemoteException {
-    transactions.clear();
-  }
-
-  @Override
   public synchronized void delete(String key) throws RemoteException {
-    coordinator.updateWithClientRequest("DELETE", key, null);
+    LogEntry entry = new LogEntry("DELETE", key, null);
+    super.checkConsensus(entry);
+  }
+
+  @Override
+  public void addPaxosParticipant(IRemoteDataStore ds) {
+    acceptors.add(ds);
   }
 }

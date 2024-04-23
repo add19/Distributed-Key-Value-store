@@ -1,14 +1,12 @@
-package RMIServer;
+package RMIServer.Messages;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-/**
- * This class represents the operations on key value store encapsulated as a transaction.
- */
-public class Transaction {
-  UUID id; // id of the transaction
+public class LogEntry implements Serializable {
+  UUID id; // id of the operation
   String operation; // type of operation
-  String[] operands; // the operands of the transaction
+  String[] operands; // the operands of the operation
 
   /**
    * Initializes transaction object based on the key value store operation
@@ -16,7 +14,7 @@ public class Transaction {
    * @param key key to be modified.
    * @param value value against the key.
    */
-  public Transaction(String operation, String key, String value) {
+  public LogEntry(String operation, String key, String value) {
     this.id = UUID.randomUUID();
     this.operation = operation;
     if(operation.equals("PUT")) {
@@ -27,6 +25,14 @@ public class Transaction {
       this.operands = new String[1];
       this.operands[0] = key;
     }
+  }
+
+  public String getOperation() {
+    return operation;
+  }
+
+  public String[] getOperands() {
+    return operands;
   }
 
   @Override

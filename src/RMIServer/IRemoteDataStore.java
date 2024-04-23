@@ -1,12 +1,15 @@
 package RMIServer;
 
+import RMIServer.Participants.IAcceptor;
+import RMIServer.Participants.ILearner;
+import RMIServer.Participants.IProposer;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 /**
  * Represents the remote data store type instances and the possible operations on them.
  */
-public interface IRemoteDataStore extends Remote, ITwoPhaseCommit {
+public interface IRemoteDataStore extends Remote, IProposer, ILearner, IAcceptor {
   /**
    * Inserts a given key and assigns it a given value in the data store.
    *
@@ -27,7 +30,10 @@ public interface IRemoteDataStore extends Remote, ITwoPhaseCommit {
    * Deletes the given key and its corresponding value from the data store.
    *
    * @param key the key to be deleted.
-   * @return A message indicating whether the operation is successful or not.
    */
   void delete(String key) throws RemoteException;
+
+  void updateInstancesWithName(String name) throws  RemoteException;
+
+  void addPaxosParticipant(IRemoteDataStore ds) throws RemoteException; // this should be in the paxos interfaces
 }
