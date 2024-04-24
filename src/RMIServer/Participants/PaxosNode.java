@@ -5,7 +5,9 @@ import RMIServer.Messages.LogEntry;
 import RMIServer.Messages.MessageType;
 import RMIServer.Messages.PaxosMessage;
 import java.rmi.RemoteException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +22,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
   private int countPromises;
   private int countAccepts;
   private long lastAcceptedId;
-  private Random random;
+  private final Random random;
 
   protected String name;
 
@@ -29,42 +31,48 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
     acceptors = new ArrayList<>();
     kvStore = new ConcurrentHashMap<>();
     random = new Random();
+  }
 
+  protected String getTimestamp() {
+    return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
+  }
+
+  private void resetCounters() {
+    this.countAccepts = 0;
+    this.countPromises = 0;
   }
 
   public boolean checkConsensus(LogEntry entry) throws RemoteException {
     PaxosMessage message = new PaxosMessage(MessageType.PREPARE, System.nanoTime(), entry);
-    this.sendPrepare(message); // returns the number of promises
-    // if majority, then sendAccept
-    if(this.countPromises + 1 >= (acceptors.size()) / 2) {
+    this.sendPrepare(message);
+    if(this.countPromises + 1 > (acceptors.size()) / 2) {
        this.sendAcceptRequest(new PaxosMessage(MessageType.ACCEPT, message.getProposalId(), entry));
-       //TODO: Handling lost updates.
-       if(this.countAccepts + 1 >= (acceptors.size()) / 2) {
-         this.updateLearner(message); // calling commit.
+       if(this.countAccepts + 1 > (acceptors.size()) / 2) {
+         this.updateLearner(message);
          for(IRemoteDataStore ds:acceptors) {
            ds.updateLearner(message);
            lastAcceptedId = message.getProposalId();
            this.acceptedLogs.put(lastAcceptedId, entry);
          }
        } else {
-         System.out.println("[ " + this.name + " ]: Couldn't accept message " + entry);
-         System.out.println(this.countAccepts);
-         System.out.println(this.countPromises);
+         System.out.println("[ " + this.name + " ]: No consensus because received " +
+            this.countAccepts + " for " + entry);
+         resetCounters();
          return false;
        }
     } else {
-      System.out.println("[ " + this.name + " ]: Couldn't reach consensus " + entry);
+      System.out.println("[ " + this.name + " ]: No consensus because received " +
+          this.countPromises + " promise for " + entry);
+      resetCounters();
       return false;
     }
+    resetCounters();
     System.out.println("[ " + this.name + " ]: Consensus reached for log " + entry);
-    // if no majority, abort
-    // if majority for sendAccept, then call for commit and updateLearner.
     return true;
   }
 
   @Override
   public void receivePrepare(IProposer proposer, PaxosMessage message) throws RemoteException {
-    //check the last accepted id as well.
     if(lastAcceptedId >= message.getProposalId()) {
       return;
     }
@@ -99,7 +107,6 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
   @Override
   public void updateLearner(PaxosMessage message) throws RemoteException {
     LogEntry entry = message.getLogEntry();
-    //writing into kv store.
     String[] operands = entry.getOperands();
     if(entry.getOperation().equals("PUT")) {
       kvStore.put(operands[0], operands[1]);
@@ -114,7 +121,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
       try {
         ds.receivePrepare(this, message);
       } catch (RuntimeException e) {
-        System.out.println("Looks like an acceptor didn't respond");
+        System.out.println("[ PREPARE " + this.name + " ]: " + "Looks like an acceptor didn't respond");
       }
     }
   }
@@ -125,20 +132,18 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
       try {
         ds.receiveAcceptRequest(this, message);
       } catch (RuntimeException e) {
-        System.out.println("[ " + this.name + " ]: " + "Looks like an acceptor didn't respond");
+        System.out.println("[ ACCEPT_REQUEST " + this.name + " ]: " + "Looks like an acceptor didn't respond");
       }
     }
   }
 
   @Override
   public void receivePromise(PaxosMessage message) throws RemoteException {
-    // check the log value and reach consensus on any missed out values.
     this.countPromises++;
   }
 
   @Override
   public void receiveAccept(PaxosMessage message) throws RemoteException {
-    //check the last accepted id as well.
     this.countAccepts++;
   }
 }

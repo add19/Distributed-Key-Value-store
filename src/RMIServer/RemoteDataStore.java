@@ -3,8 +3,6 @@ package RMIServer;
 import RMIServer.Messages.LogEntry;
 import RMIServer.Participants.PaxosNode;
 import java.rmi.RemoteException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * The remote data store class.
@@ -12,9 +10,6 @@ import java.util.Date;
 public class RemoteDataStore extends PaxosNode implements IRemoteDataStore {
   public RemoteDataStore() throws RemoteException {
     super();
-  }
-  private String getTimestamp() {
-    return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(new Date());
   }
 
   public void updateInstancesWithName(String serverName) {
