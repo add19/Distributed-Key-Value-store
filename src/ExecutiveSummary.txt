@@ -2,38 +2,79 @@
 
 ### Assignment Overview:(Purpose and Scope)
 
-The purpose of this assignment was to go on and further scale the existing key value store to increase
-fault tolerance and availability. We do this by extending our server to be replicated across different machines
-and endpoints in a cluster. Clients can communicate with any of these servers, thus ensuring if there is any server which
-goes down it still is able to get data from the store. However, this kind of architecture brings in challenges of its own, that is, to ensure
-that the data is consistent across all the replica instances, and ensuring all the write operations are
-atomic and durable, i.e. all the servers are storing same set of data and the data remains consistent across all the operations.
-The existing RMI implementation already simplify a lot of client-server communication constructs like socket creation, socket
-management, and packet level management of data transmission. In addition, the use of registry facilitated the selection
-of any particular server to connect by any of the clients.
-Implementation of the 2 phase commit protocol ensured that there is consistency across the instances. This involved in creation of
-additional coordinator(which is also a separate key value store instance). The write operations, received by
-any participant is first forwarded to the coordinator, the coordinator, which at the start-up time stores all the participant instances with it,
-forwards the transaction and asks for their votes. Any read request ensured that the latest data is returned from any given instance.
+The purpose of this assignment was to go beyond what we did in 2 phase commit protocol to now
+ensure fault-tolerance along with availability. Fault tolerance is ensured by using a consensus
+algorithm such as Paxos. The application supports connecting multiple clients at a time to different
+instances. In this, the client connects and sends a request to any server. Each server in the cluster
+acts as a Paxos Node. Each Paxos Node can act as a Proposer, Acceptor or a Learner. In case of any
+write operations, the key value store which I understand to be as an extension of the Paxos nodes
+initiates a consensus and then commits the values only after there is a consensus amongst all the nodes.
+In case of failures, the correctly functioning nodes try to come to a consensus on the operation
+in question. Each operation requested by the client is to be treated as a value in itself to be
+agreed upon.
 
 ### Technical impressions:
-Implementing RPC communication using Java RMI provided a straightforward way to achieve part of the
-assignment's objectives. For implementing the clustering logic, additional interfaces for coordinator
-functionalities had to be implemented on top of the existing remote key value stores.
-Existing rmi registry was used to keep track of all the instances in the cluster and this registry
-was then used conveniently by the client to connect to any of the available servers. The client
-then provides the user to connect to any of the given server, connects to the mentioned server
-and then invokes any of GET, PUT or DELETE operations. Each of the server keeps track of the
-coordinator server to communicate with. Whenever there is an invocation of any sort of write operations
-an RMI call is made to coordinator which then in turn initiates the 2 phase commit protocol next.
-The associated method is synchronized to ensure there is no race in the order of executions of transactions.
-At the client side, an in-memory list of transactions to be executed by the servers is maintained,
-which gets populated, once the servers update the coordinator. In case of write operations, the coordinator,
-which has all the participant instances, invokes the canCommit(). The servers then check and update
-their transactions list to prepare for transaction and then sends a vote, Yes or No, to coordinator.
-Based on the response, the coordinator then asks to abort(in case of No) and commit(in case of Yes) from
-all the participants. The servers log the information about the transaction being executed on console.
-There is a timeout implemented on coordinator side to ensure that the 2 PC doesn't  stall if any
-server goes down.
-This assignment helped learn more about 2 phase commit protocol and scaling any server while ensuring
-consistency of the data.
+
+### Setup:
+1. Each node in the cluster acts as a Paxos Proposer, Acceptor and Learner.
+2. Each node can act as a proposer and hence stores the list of acceptors from the start time, which
+    it uses to carry out multicast communication.
+3. All these servers are part of the RMI registry bound at the start time.
+4. Client process can start and communicate with any of the servers provided as a user choice to it.
+5. The state of the database is considered as a series of operations which result into the current state.
+6. Each operation requested from the client is written into a log and the paxos run is carried to agree
+   upon this entry of the log.
+7. The log entry is then executed by the learners to commit the transaction/requested operation from client
+    into the key value store on each node.
+
+The inspiration for this design comes from this google tech-talk - https://www.youtube.com/watch?v=d7nAGI_NZPk
+
+### Flow:
+* Whenever a client requests for certain PUT or DELETE operation, then in that case, the node to which
+   the client sends request to acts as a paxos proposer.
+* The paxos proposer then sends a Prepare message to the list of acceptor nodes.
+* The Prepare message sent by the proposer is having a unique proposal ID which is generated on increments
+  of nanosecond time precision.
+* The Acceptor on receiving the Prepare message then checks with the last proposal id that it had
+   accepted.
+  * If there is no previously accepted promise, in that case, the current prepare message(or proposal)
+    is accepted and a promise message is sent to the proposer, to indicate the acceptor will reject
+    any requests with lesser proposal ID
+  * If there is a previously accepted promise, the current prepare message is accepted and a promise
+    is sent if the proposal id is greater than last accepted id. Otherwise, this proposal is rejected
+    as the acceptor promised to reject any requests with lesser id.
+* The proposer upon reception from responses from acceptors, then checks if it has a majority of
+  promise messages or not.
+  * If there are not enough promise messages(which may be due to random failures), then the proposer
+    considers that there is no consensus and aborts the process.
+  * If there is a majority of promise messages received from the acceptors then the proposer proceeds
+    to the next phase of the process
+* Each operation request is treated as a log entry, and the log entry is next passed on in the accept-request
+  message sent to the acceptor nodes.
+* The acceptor nodes on the reception of the accept-request message then again performs a check on the proposal
+  id it receives.
+  * If there is no previously accepted request, in that case, the current accept-request message
+    is accepted and an accept message is sent to the proposer as well as the learner.
+    * If there is a previously accepted promise, the current accept-request message is accepted and an accept
+      is sent to the proposer if the proposal id is greater than last accepted id.
+      Otherwise, this proposal is rejected as the acceptor promised to reject any requests with lesser id.
+* The proposer upon reception from responses from acceptors, then checks if it has a majority of
+  accept messages or not.
+  * If there are not enough accept messages(which may be due to random failures again), then the proposer
+    considers that there is no consensus and aborts the process.
+  * If there is a majority of accept messages received from the acceptors then the proposer proceeds
+    to the next phase of the process
+* The proposer then sends the log entry to be committed by the learners which then do the execution
+  of the log message/client request.
+* Since the key value store is an extension of the paxos node and all the paxos nodes are proposers,
+  acceptors and learners, in case of random failures, there had to be some sort of exception handling
+  in order to handle the simulated failures as random exceptions at the proposer side.
+
+This implementation doesn't account for the lost updates in case of any failed nodes(i.e. the data
+may not be consistent theoretically on failed acceptor nodes). Also, since the failures are
+mocked to an extent where they just fail at random while accepting or promising, so this means that the
+acceptors will fail only momentarily and since each node can be a learner, each learner theoretically
+still remains consistent for GET operations.
+Overall this assignment, helped learn about the paxos algorithm for consensus by implementing the
+roles of all paxos participants. Simulating failures helped learn about the flow of the algorithm and
+ensure fault tolerance of the distributed key value store.
