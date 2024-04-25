@@ -48,11 +48,11 @@ public class KeyValueServer {
     try {
       List<String> servers = Arrays.asList(registry.list());
       for(int i=0; i< servers.size(); i++) {
+        IRemoteDataStore ds = (IRemoteDataStore) registry.lookup(servers.get(i));
         for(int j=0; j<servers.size(); j++) {
           if(i == j) {
             continue;
           }
-          IRemoteDataStore ds = (IRemoteDataStore) registry.lookup(servers.get(i));
           ds.addPaxosParticipant((IRemoteDataStore) registry.lookup(servers.get(j)));
         }
       }

@@ -118,11 +118,10 @@ The inspiration for this design comes from this google tech-talk - https://www.y
   acceptors and learners, in case of random failures, there had to be some sort of exception handling
   in order to handle the simulated failures as random exceptions at the proposer side.
 
-This implementation doesn't account for the lost updates in case of any failed nodes(i.e. the data 
-may not be consistent theoretically on failed acceptor nodes). Also, since the failures are 
-mocked to an extent where they just fail at random while accepting or promising, meaning that the 
-acceptors will fail only momentarily and since each node can be a learner, each learner theoretically
-still remains consistent for GET operations.
+In this implementation since the failures
+are mocked to an extent where they just fail at random while accepting or promising, meaning that the
+acceptors will fail only for the duration of that given transaction only and since each node can be a learner, each learner
+still remains consistent for GET operations after reaching consensus on operations.
 Overall this assignment, helped learn about the paxos algorithm for consensus by implementing the 
 roles of all paxos participants. Simulating failures helped learn about the flow of the algorithm and
 ensure fault tolerance of the distributed key value store.
@@ -138,15 +137,14 @@ Connecting to a server in the cluster
 
 
 Pre-populating key value store with paxos consensus.
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.23.03 PM.png)
 
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.24.15 PM.png)
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-25 at 9.51.10 AM.png)
 
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.26.50 PM.png)
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-25 at 9.52.37 AM.png)
 
 
 Checking if the populated key is present across different servers
-
+(KEY::98 is not present because it wasn't accepted due to consensus failure)
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.38.37 PM.png)
 
 Populating another key on another store
@@ -165,4 +163,4 @@ Deleting key and checking across different server
 
 
 Server logs showing consensus despite failures:
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 8.18.30 PM.png)
+![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-25 at 9.43.55 AM.png)

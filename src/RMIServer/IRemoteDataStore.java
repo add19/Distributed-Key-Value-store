@@ -40,7 +40,6 @@ public interface IRemoteDataStore extends Remote, IProposer, ILearner, IAcceptor
    * @param FAILURE_RATE the rate at which the server fails. This is a pre-configured value
    *                     against which a random number is generated and random exceptions are
    *                     thrown based on the comparison of these 2.
-   * @throws RemoteException
    */
   void updateInstancesWithName(String name, double FAILURE_RATE) throws  RemoteException;
 
@@ -48,7 +47,6 @@ public interface IRemoteDataStore extends Remote, IProposer, ILearner, IAcceptor
    * Since each server is an extension of a paxos proposer, this method adds to a list of the
    * acceptors.
    * @param ds the data store to be added as a paxos participant.
-   * @throws RemoteException
    */
   void addPaxosParticipant(IRemoteDataStore ds) throws RemoteException;
 }

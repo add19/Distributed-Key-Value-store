@@ -46,7 +46,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
     this.countPromises = 0;
   }
 
-  public boolean checkConsensus(LogEntry entry) throws RemoteException {
+  public synchronized boolean checkConsensus(LogEntry entry) throws RemoteException {
     PaxosMessage message = new PaxosMessage(MessageType.PREPARE, System.nanoTime(), entry);
     this.sendPrepare(message);
     if(this.countPromises + 1 > (acceptors.size()) / 2) {
@@ -80,6 +80,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
     if(lastAcceptedId >= message.getProposalId()) {
       return;
     }
+    System.out.println("[ Acceptor @ " + this.name + " ]: " + "Received prepare for proposal id " + message.getProposalId());
 
     // random failures
     double genVal = random.nextDouble();
@@ -97,6 +98,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
     if(lastAcceptedId >= message.getProposalId()) {
       return;
     }
+    System.out.println("[ Acceptor @ " + this.name + " ]: " + "Received Accept request for proposal id " + message.getProposalId());
 
     // random failures
     double genVal = random.nextDouble();
@@ -124,6 +126,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
   public void sendPrepare(PaxosMessage message) throws RemoteException {
     for(IRemoteDataStore ds:acceptors) {
       try {
+        System.out.println("[ Proposer @ " + this.name + " ]: " + "Sending proposal id " + message.getProposalId());
         ds.receivePrepare(this, message);
       } catch (RuntimeException e) {
         System.out.println("[ PREPARE " + this.name + " ]: " + "Looks like an acceptor didn't respond");
@@ -135,20 +138,23 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
   public void sendAcceptRequest(PaxosMessage message) throws RemoteException {
     for(IRemoteDataStore ds:acceptors) {
       try {
+        System.out.println("[ Proposer @ " + this.name + " ]: " + "Sending accept request for proposal id " + message.getProposalId());
         ds.receiveAcceptRequest(this, message);
       } catch (RuntimeException e) {
-        System.out.println("[ ACCEPT_REQUEST " + this.name + " ]: " + "Looks like an acceptor didn't respond");
+        System.out.println("[ ACCEPT_REQUEST @ " + this.name + " ]: " + "Looks like an acceptor didn't respond");
       }
     }
   }
 
   @Override
   public void receivePromise(PaxosMessage message) throws RemoteException {
+    System.out.println("[ Proposer @ " + this.name + " ]: " + "Received promise id " + message.getProposalId());
     this.countPromises++;
   }
 
   @Override
   public void receiveAccept(PaxosMessage message) throws RemoteException {
+    System.out.println("[ Proposer @ " + this.name + " ]: " + "Received accept for proposal id " + message.getProposalId());
     this.countAccepts++;
   }
 }

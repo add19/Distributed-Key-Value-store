@@ -37,6 +37,7 @@ public class RemoteDataStore extends PaxosNode implements IRemoteDataStore {
   @Override
   public synchronized boolean delete(String key) throws RemoteException {
     LogEntry entry = new LogEntry("DELETE", key, null);
+    System.out.println("Received request " + entry);
     return super.checkConsensus(entry);
   }
 
