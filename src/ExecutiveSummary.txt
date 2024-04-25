@@ -26,6 +26,9 @@ agreed upon.
    upon this entry of the log.
 7. The log entry is then executed by the learners to commit the transaction/requested operation from client
     into the key value store on each node.
+8. The failure rate is configured in the config.txt file. It should be tweaked to a value between 0.0
+    to 1.0. A random number is generated on acceptor nodes and the random value is checked against this
+    configured value. If it is lesser than the configured value, then an exception is thrown to simulate failures.
 
 The inspiration for this design comes from this google tech-talk - https://www.youtube.com/watch?v=d7nAGI_NZPk
 

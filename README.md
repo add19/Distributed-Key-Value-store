@@ -74,6 +74,9 @@ agreed upon.
    upon this entry of the log.
 7. The log entry is then executed by the learners to commit the transaction/requested operation from client
     into the key value store on each node.
+8. The failure rate is configured in the config.txt file. It should be tweaked to a value between 0.0
+    to 1.0. A random number is generated on acceptor nodes and the random value is checked against this 
+    configured value. If it is lesser than the configured value, then an exception is thrown to simulate failures.
 
 The inspiration for this design comes from this google tech-talk - https://www.youtube.com/watch?v=d7nAGI_NZPk
 
@@ -129,14 +132,14 @@ ensure fault tolerance of the distributed key value store.
 # Output and Screenshots
 
 ## Client
-Starting the cluster
+Starting the cluster:
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.15.52 PM.png)
 
-Connecting to a server in the cluster
+Connecting to a server in the cluster:
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.19.29 PM.png)
 
 
-Pre-populating key value store with paxos consensus.
+Pre-populating key value store with paxos consensus:
 
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-25 at 9.51.10 AM.png)
 
@@ -147,15 +150,15 @@ Checking if the populated key is present across different servers
 (KEY::98 is not present because it wasn't accepted due to consensus failure)
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.38.37 PM.png)
 
-Populating another key on another store
+Populating another key on another store:
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.59.24 PM.png)
 
 
-Checking if addition is reflected or not
+Checking if addition is reflected or not:
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 8.00.34 PM.png)
 
 
-Deleting key and checking across different server
+Deleting key and checking across different server:
 ![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 8.01.52 PM.png)
 
 
