@@ -15,6 +15,9 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+/**
+ * A paxos node that implements all the learner, proposer and acceptor paxos roles.
+ */
 public class PaxosNode implements ILearner, IProposer, IAcceptor {
   protected final ConcurrentMap<String, String> kvStore;
   protected Map<Long, LogEntry> acceptedLogs;
@@ -25,6 +28,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
   private final Random random;
 
   protected String name;
+  protected double FAILURE_RATE;
 
   public PaxosNode() {
     acceptedLogs = new HashMap<>();
@@ -79,7 +83,7 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
 
     // random failures
     double genVal = random.nextDouble();
-    if (genVal < 0.4) {
+    if (genVal < FAILURE_RATE) {
       System.out.println("Acceptor @ " + name +  "  throwing exception!");
       throw new RuntimeException("Acceptor failure");
     }
@@ -96,12 +100,13 @@ public class PaxosNode implements ILearner, IProposer, IAcceptor {
 
     // random failures
     double genVal = random.nextDouble();
-    if (genVal < 0.4) {
+    if (genVal < FAILURE_RATE) {
       System.out.println("Acceptor @ " + name +  "  throwing exception!");
       throw new RuntimeException("Acceptor failure");
     }
 
-    proposer.receiveAccept(message);
+    PaxosMessage message1 = new PaxosMessage(MessageType.ACCEPTED, message.getProposalId(), message.getLogEntry());
+    proposer.receiveAccept(message1);
   }
 
   @Override

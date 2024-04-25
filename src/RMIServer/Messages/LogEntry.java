@@ -3,13 +3,16 @@ package RMIServer.Messages;
 import java.io.Serializable;
 import java.util.UUID;
 
+/**
+ * Represents a log value on which the paxos nodes are to agree upon.
+ */
 public class LogEntry implements Serializable {
   UUID id; // id of the operation
   String operation; // type of operation
   String[] operands; // the operands of the operation
 
   /**
-   * Initializes transaction object based on the key value store operation
+   * Initializes LogEntry object based on the key value store operation.
    * @param operation the operation for transaction
    * @param key key to be modified.
    * @param value value against the key.

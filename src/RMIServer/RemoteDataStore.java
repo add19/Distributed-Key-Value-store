@@ -12,7 +12,8 @@ public class RemoteDataStore extends PaxosNode implements IRemoteDataStore {
     super();
   }
 
-  public void updateInstancesWithName(String serverName) {
+  public void updateInstancesWithName(String serverName, double rate) {
+    FAILURE_RATE = rate;
     name = serverName;
   }
 

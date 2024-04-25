@@ -30,13 +30,6 @@ public class KeyValueServer {
       return;
     }
 
-    /**
-     * 1. Define the Paxos Node interfaces for proposers, learners and acceptors
-     * 2. Create implementations for promise, accept-request and accept messages
-     * 3. Base the flow of events on log records. Define counters for promise ids.
-     * 4. Define the logic for sending the previously accepted messages id along with promise messages
-     * 5. Read should be from all the nodes and the majority value should be considered.
-     */
     for(int i=0; i<5; i++) {
       try {
         int portNum = Integer.parseInt(args[i]);
@@ -46,7 +39,7 @@ public class KeyValueServer {
         String serverName = "kvstore" + (i + 1);
         registry.rebind(serverName, stub);
         System.out.println("Server at port " + portNum + " " + serverName + " ready..");
-        stub.updateInstancesWithName(serverName);
+        stub.updateInstancesWithName(serverName, Double.parseDouble(configMap.get("FAILURE_RATE")));
       } catch (RemoteException e) {
         System.out.println("Couldn't start all the servers..." + e);
       }

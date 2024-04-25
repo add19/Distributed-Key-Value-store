@@ -33,7 +33,22 @@ public interface IRemoteDataStore extends Remote, IProposer, ILearner, IAcceptor
    */
   boolean delete(String key) throws RemoteException;
 
-  void updateInstancesWithName(String name) throws  RemoteException;
+  /**
+   * Updates the remote interface with the name of the server and the failure rate configured.
+   *
+   * @param name name of the server
+   * @param FAILURE_RATE the rate at which the server fails. This is a pre-configured value
+   *                     against which a random number is generated and random exceptions are
+   *                     thrown based on the comparison of these 2.
+   * @throws RemoteException
+   */
+  void updateInstancesWithName(String name, double FAILURE_RATE) throws  RemoteException;
 
-  void addPaxosParticipant(IRemoteDataStore ds) throws RemoteException; // this should be in the paxos interfaces
+  /**
+   * Since each server is an extension of a paxos proposer, this method adds to a list of the
+   * acceptors.
+   * @param ds the data store to be added as a paxos participant.
+   * @throws RemoteException
+   */
+  void addPaxosParticipant(IRemoteDataStore ds) throws RemoteException;
 }

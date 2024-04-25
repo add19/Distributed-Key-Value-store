@@ -120,7 +120,7 @@ The inspiration for this design comes from this google tech-talk - https://www.y
 
 This implementation doesn't account for the lost updates in case of any failed nodes(i.e. the data 
 may not be consistent theoretically on failed acceptor nodes). Also, since the failures are 
-mocked to an extent where they just fail at random while accepting or promising, so this means that the 
+mocked to an extent where they just fail at random while accepting or promising, meaning that the 
 acceptors will fail only momentarily and since each node can be a learner, each learner theoretically
 still remains consistent for GET operations.
 Overall this assignment, helped learn about the paxos algorithm for consensus by implementing the 
