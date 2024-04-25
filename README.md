@@ -25,8 +25,7 @@ Aadish Deshpande (deshpande.aa@northeastern.edu)
     ├── Messages
     │   ├── LogEntry.java
     │   ├── MessageType.java
-    │   ├── PaxosMessage.java
-    │   └── Proposal.java
+    │   └── PaxosMessage.java
     ├── Participants
     │   ├── IAcceptor.java
     │   ├── ILearner.java
