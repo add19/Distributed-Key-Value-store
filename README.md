@@ -1,12 +1,7 @@
 # Project owner
-Aadish Deshpande (deshpande.aa@northeastern.edu)
+Aadish Deshpande (aadish.deshpande@gmail.com)
 
 # Project Readme
-
-## Brief overview of the project
-* This project is an extension of the distributed key value store that we have been building. This 
-  time, to ensure that there is fault-tolerance paxos based consensus is implemented.
-* There are 2 packages each for client and server, namely `RMIClient` and `RMIServer`
 
 ### Sample configuration
 
@@ -46,19 +41,6 @@ Aadish Deshpande (deshpande.aa@northeastern.edu)
 * All the client and server logs are generated on the console
 
 ## Executive Summary
-
-### Assignment Overview:(Purpose and Scope)
-
-The purpose of this assignment was to go beyond what we did in 2 phase commit protocol to now
-ensure fault-tolerance along with availability. Fault tolerance is ensured by using a consensus 
-algorithm such as Paxos. The application supports connecting multiple clients at a time to different
-instances. In this, the client connects and sends a request to any server. Each server in the cluster
-acts as a Paxos Node. Each Paxos Node can act as a Proposer, Acceptor or a Learner. In case of any 
-write operations, the key value store which I understand to be as an extension of the Paxos nodes
-initiates a consensus and then commits the values only after there is a consensus amongst all the nodes.
-In case of failures, the correctly functioning nodes try to come to a consensus on the operation
-in question. Each operation requested by the client is to be treated as a value in itself to be 
-agreed upon.
 
 ### Technical impressions:
 
@@ -124,45 +106,4 @@ In this implementation since the failures
 are mocked to an extent where they just fail at random while accepting or promising, meaning that the
 acceptors will fail only for the duration of that given transaction only and since each node can be a learner, each learner
 still remains consistent for GET operations after reaching consensus on operations.
-Overall this assignment, helped learn about the paxos algorithm for consensus by implementing the 
-roles of all paxos participants. Simulating failures helped learn about the flow of the algorithm and
-ensure fault tolerance of the distributed key value store.
 
-# Output and Screenshots
-
-## Client
-Starting the cluster:
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.15.52 PM.png)
-
-Connecting to a server in the cluster:
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.19.29 PM.png)
-
-
-Pre-populating key value store with paxos consensus:
-
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-25 at 9.51.10 AM.png)
-
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-25 at 9.52.37 AM.png)
-
-
-Checking if the populated key is present across different servers
-(KEY::98 is not present because it wasn't accepted due to consensus failure)
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.38.37 PM.png)
-
-Populating another key on another store:
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 7.59.24 PM.png)
-
-
-Checking if addition is reflected or not:
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 8.00.34 PM.png)
-
-
-Deleting key and checking across different server:
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 8.01.52 PM.png)
-
-
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-24 at 8.01.52 PM.png)
-
-
-Server logs showing consensus despite failures:
-![](/Users/aadishdeshpande/Documents/spring/24/distributed_systems/DistributedSystemsProject/Screenshots/p4/Screenshot 2024-04-25 at 9.43.55 AM.png)
